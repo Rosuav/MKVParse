@@ -5,7 +5,6 @@
 
 int main() {
 	printf("Hello, world\n");
-	//AVFormatContext *pFormatContext = avformat_alloc_context();
-	//printf("Version: %d\n", avformat_version());
-	//printf("Config: %s\n", avformat_configuration());
+	printf("Version: %X\n", avformat_version());
+	AVFormatContext *pFormatContext = avformat_alloc_context();
 }

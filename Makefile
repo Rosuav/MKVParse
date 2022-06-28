@@ -26,4 +26,4 @@ ebml_matroska.xml:
 	wget https://raw.githubusercontent.com/ietf-wg-cellar/matroska-specification/master/ebml_matroska.xml
 
 clip: clip.c
-	gcc -o $@ `pkg-config --cflags --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale` $<
+	gcc -o $@ $< `pkg-config --cflags --libs libavcodec libavdevice libavfilter libavformat libavutil libswresample libswscale`
