@@ -15,6 +15,26 @@ int main() {
 		if (strm->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) videoidx = i;
 	}
 	if (videoidx == -1) {printf("No video stream\n"); exit(0);}
+	const char *outfile = "Clip.mkv";
+
+	AVFormatContext *output;
+	avformat_alloc_output_context2(&output, NULL, NULL, outfile);
+	if (!output) {
+		printf("Unable to calculate output format for %s\n", outfile);
+		exit(1);
+	}
+	const AVOutputFormat *fmt = output->oformat;
+	if (fmt->video_codec == AV_CODEC_ID_NONE || fmt->audio_codec == AV_CODEC_ID_NONE) {
+		//Clipping to just audio can be done without issues in vanilla ffmpeg.
+		//Clipping to just video is probably best done with vanilla ffmpeg too.
+		printf("Output format lacks audio/video\n");
+		exit(1);
+	}
+	const AVCodec *audio_codec = avcodec_find_encoder(fmt->audio_codec);
+	const AVCodec *video_codec = avcodec_find_encoder(fmt->video_codec);
+	ret = avio_open(&output->pb, outfile, AVIO_FLAG_WRITE);
+	if (ret < 0) abort();
+
 	AVStream *strm = s->streams[videoidx];
 	//Our "goal" PTS is defined by a timestamp, here given in seconds, divided by the time_base.
 	int start = 166, length = 57; //2:46
