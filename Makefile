@@ -8,13 +8,13 @@ Transcoded2.mkv: Monody.mkv
 	ffmpeg -y -i $< -ss 2:46 -t 57 $@
 
 Copy.mkv: Monody.mkv
-	ffmpeg -y -ss 2:46 -i $< -t 57 -c copy $@
+	ffmpeg -y -ss 2:46 -i $< -t 57 -c copy -copyinkf $@
 
 Copy2.mkv: Monody.mkv
-	ffmpeg -y -i $< -ss 2:46 -t 57 -c copy $@
+	ffmpeg -y -i $< -ss 2:46 -t 57 -c copy -copyinkf $@
 
 Copy3.mkv: Monody.mkv
-	ffmpeg -y -ss 2:30 -i $< -ss 16 -t 57 -c copy $@
+	ffmpeg -y -ss 2:30 -i $< -ss 16 -t 57 -c copy -copyinkf $@
 
 Small.mkv: Monody.mkv
 	ffmpeg -y -ss 2:46 -i $< -t 57 -s 640x360 $@
