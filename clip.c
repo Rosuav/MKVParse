@@ -32,8 +32,9 @@ int main() {
 		printf("Stream %d: time base %d/%d, frames %ld\n",
 			i, strm->time_base.num, strm->time_base.den, strm->nb_frames);
 		if (strm->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) videoidx = i;
-		streams[i] = avformat_new_stream(output, NULL);
-		streams[i]->id = i;
+		AVStream *out_strm = avformat_new_stream(output, NULL);
+		ret = avcodec_parameters_copy(out_strm->codecpar, strm->codecpar);
+		if (ret < 0) DIE();
 		const AVCodec *codec = avcodec_find_decoder(strm->codecpar->codec_id);
 		incodecs[i] = avcodec_alloc_context3(codec);
 		outcodecs[i] = avcodec_alloc_context3(codec);
@@ -44,8 +45,7 @@ int main() {
 
 	ret = avio_open(&output->pb, outfile, AVIO_FLAG_WRITE);
 	if (ret < 0) DIE();
-	AVDictionary *opt = NULL;
-	ret = avformat_write_header(output, &opt);
+	ret = avformat_write_header(output, NULL);
 	if (ret < 0) DIE();
 
 	AVStream *strm = s->streams[videoidx];
@@ -53,8 +53,9 @@ int main() {
 	int start = 166, length = 57; //2:46
 	int64_t goal = start * strm->time_base.den / strm->time_base.num;
 	int64_t end = goal + length * strm->time_base.den / strm->time_base.num;
-	printf("Goal: %ld End: %ld\n", goal, end);
+	printf("Goal: %ld End: %ld\n", goal, end); fflush(stdout);
 	enum {SEEKING, TRANSCODING, COPYING, FINISHING} mode = SEEKING;
+	AVFrame *frame = frame = av_frame_alloc();
 	while (mode != FINISHING) {
 		AVPacket pkt;
 		if (av_read_frame(s, &pkt) < 0) break;
@@ -74,10 +75,9 @@ int main() {
 			//For now, transcode the whole way.
 			avcodec_send_packet(incodecs[pkt.stream_index], &pkt);
 			while (1) {
-				AVFrame frame;
-				int ret = avcodec_receive_frame(incodecs[pkt.stream_index], &frame);
+				int ret = avcodec_receive_frame(incodecs[pkt.stream_index], frame);
 				if (ret < 0) break;
-				ret = avcodec_send_frame(outcodecs[pkt.stream_index], &frame);
+				ret = avcodec_send_frame(outcodecs[pkt.stream_index], frame);
 				while (1) {
 					AVPacket outpkt;
 					ret = avcodec_receive_packet(outcodecs[pkt.stream_index], &outpkt);
